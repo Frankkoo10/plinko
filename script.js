@@ -6,55 +6,6 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 let currentUser = null;
-let balance = 0; // Se actualizará al leer la base de datos
-
-// ==========================================
-// 2. LÓGICA DE AUTENTICACIÓN Y SALDOS
-// ==========================================
-async function verificarSesionYJugar() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (!session) {
-        // Redirigir al lobby si no está logueado
-        window.location.href = 'index.html'; 
-        return;
-    }
-    
-    currentUser = session.user;
-
-    // Buscamos su saldo en la tabla "perfiles"
-    const { data: perfilData } = await supabaseClient
-        .from('perfiles')
-        .select('saldo')
-        .eq('id', currentUser.id)
-        .single();
-
-    if (perfilData) {
-        balance = parseFloat(perfilData.saldo);
-    } else {
-        // Si no tiene perfil, le damos el saldo inicial (ej. 100000) y lo creamos
-        balance = 100000; 
-        await guardarSaldoEnBD(); 
-    }
-
-    initGame(); // Iniciar el juego una vez tengamos los datos
-}
-
-async function guardarSaldoEnBD() {
-    if (!currentUser) return;
-    
-    const { error } = await supabaseClient
-        .from('perfiles')
-        .update({ saldo: balance }) // Usamos .update() directamente
-        .eq('id', currentUser.id);
-
-    if (error) {
-        console.error("Error guardando saldo:", error.message);
-    }
-}
-
-// Iniciar sesión apenas carga la ventana
-window.onload = verificarSesionYJugar;
 
 // Tablas de multiplicadores reales basadas en Stake
 const MULTIPLIERS = {
@@ -93,12 +44,66 @@ for (let r = 8; r <= 16; r++) {
 const canvas = document.getElementById('plinko-canvas');
 const ctx = canvas.getContext('2d');
 
+let balance = 0; // Se iniciará con el saldo de Supabase
 let mode = 'manual';
 let autoInterval = null;
 let isAutoPlaying = false;
 let balls = [];
 let pegs = [];
 let buckets = [];
+
+// ==========================================
+// 2. LÓGICA DE AUTENTICACIÓN Y SALDOS DE SUPABASE
+// ==========================================
+
+async function verificarSesionYJugar() {
+    document.getElementById('balance-text').innerText = "CARGANDO...";
+    
+    // 1. Verificamos si hay alguien logueado
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    if (!session) {
+        // Redirigir si no está logueado
+        window.location.href = 'index.html'; 
+        return;
+    }
+    
+    currentUser = session.user;
+
+    // 2. Buscamos su saldo en la tabla "perfiles"
+    const { data: perfilData } = await supabaseClient
+        .from('perfiles')
+        .select('saldo')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (perfilData) {
+        balance = parseFloat(perfilData.saldo);
+    } else {
+        // Si no tiene perfil, le damos el bono inicial y lo creamos
+        balance = 10000; 
+        await guardarSaldoEnBD(); 
+    }
+
+    // Actualizar visualmente y continuar
+    updateBalance(0);
+}
+
+// Función con UPSERT para crear o actualizar en Supabase
+async function guardarSaldoEnBD() {
+    if(!currentUser) return;
+    
+    await supabaseClient
+        .from('perfiles')
+        .upsert({ 
+            id: currentUser.id, 
+            saldo: balance 
+        });
+}
+
+// ==========================================
+// 3. FUNCIONES DEL JUEGO
+// ==========================================
 
 // Redimensionamiento responsive del Canvas
 function resizeCanvas() {
@@ -111,6 +116,9 @@ function resizeCanvas() {
 
 // Vincular Elementos del DOM e inicializar Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
+    // Al cargar la pantalla, iniciamos la verificación en Supabase
+    verificarSesionYJugar();
+
     document.getElementById('tab-manual').addEventListener('click', () => setMode('manual'));
     document.getElementById('tab-auto').addEventListener('click', () => setMode('auto'));
     
@@ -118,31 +126,26 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('rows-select').addEventListener('change', updateBoard);
     document.getElementById('play-btn').addEventListener('click', handlePlay);
 
-    // NUEVO: Listeners para Sincronizar el Deslizador y los Porcentajes de Apuesta
     const betInput = document.getElementById('bet-amount');
     const betSlider = document.getElementById('bet-slider');
     const chips = document.querySelectorAll('.chip-btn');
 
-    // Función para mantener actualizados los topes del Slider según tu dinero actual
     function updateSliderLimits() {
         betSlider.max = Math.max(0.1, balance).toFixed(2);
     }
 
-    // Sincronizar Slider -> Input Numérico
     betSlider.addEventListener('input', (e) => {
         let val = parseFloat(e.target.value) || 0.1;
         betInput.value = val.toFixed(2);
         clearActiveChips();
     });
 
-    // Sincronizar Input Numérico -> Slider
     betInput.addEventListener('input', (e) => {
         let val = parseFloat(e.target.value) || 0.1;
         betSlider.value = val;
         clearActiveChips();
     });
 
-    // Eventos para los Botones de Porcentaje (10%, 25%, 50%, MAX)
     chips.forEach(chip => {
         chip.addEventListener('click', () => {
             clearActiveChips();
@@ -160,10 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
         chips.forEach(c => c.classList.remove('active'));
     }
 
-    // Adaptar Canvas en redimensiones de pantalla
     window.addEventListener('resize', resizeCanvas);
 
-    // Inicializar límites y render del juego
     updateSliderLimits();
     resizeCanvas();
     animate();
@@ -191,22 +192,20 @@ function setMode(newMode) {
     document.getElementById('play-btn').innerText = mode === 'auto' ? 'Start Auto' : 'Play';
 }
 
-// Actualizar visor de balance, sincronizar sliders y GUARDAR EN BD
-async function updateBalance(amount) {
+// Actualizar visor de balance, sincronizar sliders y BD
+function updateBalance(amount) {
     balance += amount;
-    // Redondeo para evitar errores de coma flotante (ej: 0.000000001)
-    balance = Math.round(balance * 100) / 100;
-    
     document.getElementById('balance-text').innerText = `$${balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     
-    // Actualizar dinámicamente el rango del slider
     const betSlider = document.getElementById('bet-slider');
     if (betSlider) {
         betSlider.max = Math.max(0.1, balance).toFixed(2);
     }
 
-    // AQUI ESTA LA CLAVE: Guardamos en Supabase cada vez que el saldo cambia
-    await guardarSaldoEnBD();
+    // Guardar el saldo actualizado en Supabase si se realizó algún cambio real
+    if (amount !== 0) {
+        guardarSaldoEnBD();
+    }
 }
 
 // Recalcular y dibujar la estructura geométrica del juego
@@ -221,12 +220,10 @@ function updateBoard() {
     const risk = riskSelect.value;
     const currentMultipliers = MULTIPLIERS[rows][risk];
 
-    // Escalar dinámicamente según altura y anchura del contenedor
     const startY = Math.max(30, canvas.height * 0.08);
     const availableHeight = canvas.height - startY - Math.max(40, canvas.height * 0.1);
     const spacingY = availableHeight / rows;
     
-    // Crear filas de clavijas (Pegs)
     for (let r = 0; r < rows; r++) {
         let rowPegs = [];
         let pegsInRow = r + 3;
@@ -243,7 +240,6 @@ function updateBoard() {
         pegs.push(rowPegs);
     }
 
-    // Crear casillas (Buckets) usando la última fila de clavijas
     if (pegs.length > 0) {
         const lastRowPegs = pegs[pegs.length - 1];
         for (let i = 0; i < lastRowPegs.length - 1; i++) {
@@ -296,7 +292,8 @@ function spawnBall() {
         return;
     }
 
-    await updateBalance(-bet);
+    // Al lanzar la bola, restamos el monto apostado y se actualiza en la BD
+    updateBalance(-bet);
 
     const rowsCount = pegs.length; 
     let currentCol = 1; 
@@ -308,7 +305,6 @@ function spawnBall() {
         path.push(pegs[r][currentCol]);
     }
 
-    // Último paso físico directamente al centro del bucket
     let finalDir = Math.random() < 0.5 ? 0 : 1;
     let bucketIndex = (currentCol - 1) + finalDir;
 
@@ -336,7 +332,6 @@ function spawnBall() {
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Dibujar Clavijas (Pegs)
     ctx.fillStyle = '#64748b';
     for (let r = 0; r < pegs.length; r++) {
         for (let c = 0; c < pegs[r].length; c++) {
@@ -346,7 +341,6 @@ function animate() {
         }
     }
 
-    // Dibujar Casillas Multiplicadoras (Buckets)
     for (let i = 0; i < buckets.length; i++) {
         let b = buckets[i];
         
@@ -370,7 +364,6 @@ function animate() {
         ctx.fillText(`${b.multiplier}×`, b.x, b.y + b.height / 2 + offset/2);
     }
 
-    // Calcular movimiento y trayectoria de las Bolas
     for (let i = balls.length - 1; i >= 0; i--) {
         let ball = balls[i];
         let p1 = ball.path[ball.step];
@@ -385,11 +378,11 @@ function animate() {
             if (ball.step >= ball.path.length - 1) {
                 let finalNode = ball.path[ball.path.length - 1];
                 let bucket = buckets[finalNode.bucketIndex];
-               // Busca esto dentro de tu función animate() y asegúrate de añadir await:
-if (bucket) {
-    bucket.pulse = 1; 
-    await updateBalance(ball.bet * bucket.multiplier); // Añade 'await' aquí
-}
+                if (bucket) {
+                    bucket.pulse = 1; 
+                    // Al caer la bola al bucket, se suma el premio y se actualiza la BD
+                    updateBalance(ball.bet * bucket.multiplier);
+                }
                 balls.splice(i, 1);
                 continue;
             }
@@ -406,7 +399,6 @@ if (bucket) {
         }
         ball.y = p1.y + (p2.y - p1.y) * t - arc;
 
-        // Dibujar bola dorada con haz luminoso
         ctx.fillStyle = '#ffd700';       
         ctx.shadowColor = '#ffa500';     
         ctx.shadowBlur = 10;
