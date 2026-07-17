@@ -1,3 +1,61 @@
+// ==========================================
+// 1. CONFIGURACIÓN DE SUPABASE
+// ==========================================
+const supabaseUrl = 'https://wgqqbahoalozgfukioza.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndncXFiYWhvYWxvemdmdWtpb3phIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNTA3OTYsImV4cCI6MjA5OTgyNjc5Nn0.v_kpYceS8ceIUBNaLLHjfyBeFA2Y3lDRy7Yn6cb5Uz8';
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+let currentUser = null;
+let balance = 0; // Se actualizará al leer la base de datos
+
+// ==========================================
+// 2. LÓGICA DE AUTENTICACIÓN Y SALDOS
+// ==========================================
+async function verificarSesionYJugar() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    
+    if (!session) {
+        // Redirigir al lobby si no está logueado
+        window.location.href = 'index.html'; 
+        return;
+    }
+    
+    currentUser = session.user;
+
+    // Buscamos su saldo en la tabla "perfiles"
+    const { data: perfilData } = await supabaseClient
+        .from('perfiles')
+        .select('saldo')
+        .eq('id', currentUser.id)
+        .single();
+
+    if (perfilData) {
+        balance = parseFloat(perfilData.saldo);
+    } else {
+        // Si no tiene perfil, le damos el saldo inicial (ej. 100000) y lo creamos
+        balance = 100000; 
+        await guardarSaldoEnBD(); 
+    }
+
+    initGame(); // Iniciar el juego una vez tengamos los datos
+}
+
+async function guardarSaldoEnBD() {
+    if (!currentUser) return;
+    
+    const { error } = await supabaseClient
+        .from('perfiles')
+        .update({ saldo: balance }) // Usamos .update() directamente
+        .eq('id', currentUser.id);
+
+    if (error) {
+        console.error("Error guardando saldo:", error.message);
+    }
+}
+
+// Iniciar sesión apenas carga la ventana
+window.onload = verificarSesionYJugar;
+
 // Tablas de multiplicadores reales basadas en Stake
 const MULTIPLIERS = {
     8: {
@@ -35,7 +93,6 @@ for (let r = 8; r <= 16; r++) {
 const canvas = document.getElementById('plinko-canvas');
 const ctx = canvas.getContext('2d');
 
-let balance = 10000.00; // MODIFICADO: Balance inicial de 10,000
 let mode = 'manual';
 let autoInterval = null;
 let isAutoPlaying = false;
@@ -134,9 +191,12 @@ function setMode(newMode) {
     document.getElementById('play-btn').innerText = mode === 'auto' ? 'Start Auto' : 'Play';
 }
 
-// Actualizar visor de balance y sincronizar los sliders
-function updateBalance(amount) {
+// Actualizar visor de balance, sincronizar sliders y GUARDAR EN BD
+async function updateBalance(amount) {
     balance += amount;
+    // Redondeo para evitar errores de coma flotante (ej: 0.000000001)
+    balance = Math.round(balance * 100) / 100;
+    
     document.getElementById('balance-text').innerText = `$${balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     
     // Actualizar dinámicamente el rango del slider
@@ -144,6 +204,9 @@ function updateBalance(amount) {
     if (betSlider) {
         betSlider.max = Math.max(0.1, balance).toFixed(2);
     }
+
+    // AQUI ESTA LA CLAVE: Guardamos en Supabase cada vez que el saldo cambia
+    await guardarSaldoEnBD();
 }
 
 // Recalcular y dibujar la estructura geométrica del juego
@@ -233,7 +296,7 @@ function spawnBall() {
         return;
     }
 
-    updateBalance(-bet);
+    await updateBalance(-bet);
 
     const rowsCount = pegs.length; 
     let currentCol = 1; 
@@ -322,10 +385,11 @@ function animate() {
             if (ball.step >= ball.path.length - 1) {
                 let finalNode = ball.path[ball.path.length - 1];
                 let bucket = buckets[finalNode.bucketIndex];
-                if (bucket) {
-                    bucket.pulse = 1; 
-                    updateBalance(ball.bet * bucket.multiplier);
-                }
+               // Busca esto dentro de tu función animate() y asegúrate de añadir await:
+if (bucket) {
+    bucket.pulse = 1; 
+    await updateBalance(ball.bet * bucket.multiplier); // Añade 'await' aquí
+}
                 balls.splice(i, 1);
                 continue;
             }
