@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Plinko</title>
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Script de Supabase para poder leer/guardar el saldo -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -63,6 +65,11 @@
         </div>
 
         <button class="play-btn" id="play-btn">Play</button>
+
+        <div class="balance-display">
+            <div class="balance-label">BALANCE</div>
+            <div class="balance-value" id="balance-text">CARGANDO...</div>
+        </div>
     </div>
 
     <!-- Área visual del juego -->
