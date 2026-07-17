@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Plinko</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="game-container">
+    <!-- Barra lateral de controles -->
+    <div class="sidebar">
+        <div class="mode-tabs">
+            <button class="tab-btn active" id="tab-manual">Manual</button>
+            <button class="tab-btn" id="tab-auto">Auto</button>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Bet Amount</span>
+            <!-- Input Numérico Principal -->
+            <div class="input-wrapper">
+                <input type="number" id="bet-amount" value="10.00" min="0.10" step="1.00">
+            </div>
+            
+            <!-- DESLIZADOR INTERACTIVO DE NEÓN -->
+            <div class="bet-slider-container">
+                <input type="range" id="bet-slider" class="bet-slider" min="0.10" max="10000" step="1" value="10">
+            </div>
+
+            <!-- FICHAS DE PORCENTAJE DE SALDO -->
+            <div class="quick-bets">
+                <button class="chip-btn" data-pct="10">10%</button>
+                <button class="chip-btn" data-pct="25">25%</button>
+                <button class="chip-btn" data-pct="50">50%</button>
+                <button class="chip-btn" data-pct="100">MAX</button>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Risk</span>
+            <select id="risk-select">
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <span class="control-label">Rows</span>
+            <select id="rows-select">
+                <option value="8">8</option>
+                <option value="9">9</option>
+                <option value="10">10</option>
+                <option value="11">11</option>
+                <option value="12">12</option>
+                <option value="13">13</option>
+                <option value="14">14</option>
+                <option value="15">15</option>
+                <option value="16" selected>16</option>
+            </select>
+        </div>
+
+        <button class="play-btn" id="play-btn">Play</button>
+
+        <div class="balance-display">
+            <div class="balance-label">BALANCE</div>
+            <div class="balance-value" id="balance-text">$10,000.00</div>
+        </div>
+    </div>
+
+    <!-- Área visual del juego -->
+    <div class="canvas-container">
+        <canvas id="plinko-canvas"></canvas>
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
