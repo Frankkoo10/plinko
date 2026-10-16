@@ -1,17 +1,15 @@
 :root {
-    /* Paleta Violeta Metálica y Amarillo Casino */
-    --bg-dark: #0a0115;          /* Violeta ultra oscuro */
-    --bg-sidebar: #15022b;       /* Violeta profundo para la barra */
-    --bg-input: #29084d;         /* Violeta medio para inputs */
-    --text-main: #f8fafc;        /* Blanco para texto principal */
-    --text-muted: #a78bfa;       /* Lavanda claro para subtítulos */
-    --accent-yellow: #ffc107;    /* Amarillo Casino principal */
-    --accent-yellow-hover: #ffdb4d; /* Amarillo brillante para hover */
-    --accent-gold: #ffd700;      /* Dorado neón para balances y bordes activos */
+    --bg-dark: #0a0115;
+    --bg-sidebar: #15022b;
+    --bg-input: #29084d;
+    --text-main: #f8fafc;
+    --text-muted: #a78bfa;
+    --accent-yellow: #ffc107;
+    --accent-yellow-hover: #ffdb4d;
+    --accent-gold: #ffd700;
     --border-radius: 8px;
-    --border-color: #3b0d6b;     /* Bordes violeta metálico */
+    --border-color: #3b0d6b;
 }
-
 * {
     box-sizing: border-box;
     margin: 0;
@@ -19,7 +17,6 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
 }
-
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);
@@ -27,14 +24,12 @@ body {
     height: 100vh;
     overflow: hidden;
 }
-
-/* BOTÓN VOLVER AL MENÚ (Logo del casino) */
 .back-to-menu {
     position: fixed;
     top: 15px;
     left: 15px;
     z-index: 1000;
-    width: 60px; /* Ajusta el tamaño de tu logo aquí */
+    width: 60px;
     height: 60px;
     display: flex;
     justify-content: center;
@@ -46,31 +41,25 @@ body {
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
 }
-
 .back-to-menu img {
     width: 70%;
     height: auto;
     object-fit: contain;
 }
-
 .back-to-menu:hover {
     transform: scale(1.1);
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
 }
-
-/* Layout Principal */
 .game-container {
     display: flex;
     width: 100%;
     height: 100%;
 }
-
-/* Barra lateral de controles */
 .sidebar {
     width: 320px;
     background-color: var(--bg-sidebar);
     padding: 20px;
-    padding-top: 85px; /* Espacio para el logo arriba */
+    padding-top: 85px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -78,7 +67,6 @@ body {
     box-shadow: 5px 0 15px rgba(0,0,0,0.5);
     z-index: 10;
 }
-
 .mode-tabs {
     display: flex;
     background-color: var(--bg-dark);
@@ -87,7 +75,6 @@ body {
     margin-bottom: 8px;
     border: 1px solid var(--border-color);
 }
-
 .tab-btn {
     flex: 1;
     padding: 10px;
@@ -99,19 +86,16 @@ body {
     border-radius: 6px;
     transition: all 0.2s;
 }
-
 .tab-btn.active {
     background-color: var(--bg-input);
     color: var(--accent-yellow);
     box-shadow: inset 0 0 4px rgba(255, 193, 7, 0.1);
 }
-
 .control-group {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
-
 .control-label {
     font-size: 12px;
     color: var(--text-muted);
@@ -119,7 +103,6 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-
 .input-wrapper {
     display: flex;
     background-color: var(--bg-input);
@@ -129,12 +112,10 @@ body {
     align-items: center;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
-
 .input-wrapper:focus-within {
     border-color: var(--accent-gold);
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
-
 .input-wrapper input {
     width: 100%;
     background: transparent;
@@ -146,15 +127,12 @@ body {
     outline: none;
     text-align: center;
 }
-
-/* Contenedor y Estilos del Deslizador (Slider) */
 .bet-slider-container {
     width: 100%;
     display: flex;
     align-items: center;
     margin: 8px 0 4px 0;
 }
-
 .bet-slider {
     -webkit-appearance: none;
     appearance: none;
@@ -165,7 +143,6 @@ body {
     outline: none;
     border: 1px solid var(--border-color);
 }
-
 .bet-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -177,12 +154,10 @@ body {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
     transition: transform 0.1s, background-color 0.1s;
 }
-
 .bet-slider::-webkit-slider-thumb:hover {
     transform: scale(1.25);
     background: #ffffff;
 }
-
 .bet-slider::-moz-range-thumb {
     width: 18px;
     height: 18px;
@@ -193,19 +168,15 @@ body {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
     transition: transform 0.1s, background-color 0.1s;
 }
-
 .bet-slider::-moz-range-thumb:hover {
     transform: scale(1.25);
     background: #ffffff;
 }
-
-/* Contenedor y Estilo de las Fichas de Porcentaje */
 .quick-bets {
     display: flex;
     gap: 6px;
     margin-top: 4px;
 }
-
 .chip-btn {
     flex: 1;
     background: var(--bg-dark);
@@ -218,20 +189,17 @@ body {
     cursor: pointer;
     transition: all 0.2s;
 }
-
 .chip-btn:hover {
     border-color: var(--accent-gold);
     color: var(--accent-gold);
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.15);
 }
-
 .chip-btn.active {
     background: var(--accent-gold);
     color: #000;
     border-color: var(--accent-gold);
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
 }
-
 select {
     width: 100%;
     background-color: var(--bg-input);
@@ -244,13 +212,10 @@ select {
     cursor: pointer;
     transition: border-color 0.2s, box-shadow 0.2s;
 }
-
 select:focus {
     border-color: var(--accent-gold);
     box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
-
-/* Botón de Play (Amarillo Casino Metálico) */
 .play-btn {
     margin-top: 10px;
     background: linear-gradient(180deg, var(--accent-yellow-hover) 0%, var(--accent-yellow) 100%);
@@ -266,28 +231,23 @@ select:focus {
     transition: transform 0.1s, box-shadow 0.2s;
     box-shadow: 0 4px 0 #b38700, 0 0 20px rgba(255, 193, 7, 0.4);
 }
-
 .play-btn:hover {
     background: linear-gradient(180deg, #ffe066 0%, var(--accent-yellow-hover) 100%);
     box-shadow: 0 4px 0 #b38700, 0 0 25px rgba(255, 193, 7, 0.6);
 }
-
 .play-btn:active {
     transform: translateY(3px);
     box-shadow: 0 1px 0 #b38700, 0 0 10px rgba(255, 193, 7, 0.3);
 }
-
 .play-btn.auto-stop {
     background: linear-gradient(180deg, #ff4d4d 0%, #cc0000 100%);
     box-shadow: 0 4px 0 #800000, 0 0 20px rgba(204, 0, 0, 0.4);
     color: #fff;
 }
-
 .play-btn.auto-stop:hover {
     background: linear-gradient(180deg, #ff6666 0%, #e60000 100%);
     box-shadow: 0 4px 0 #800000, 0 0 25px rgba(204, 0, 0, 0.6);
 }
-
 .balance-display {
     margin-top: auto;
     background-color: var(--bg-dark);
@@ -296,7 +256,6 @@ select:focus {
     text-align: center;
     border: 1px solid var(--border-color);
 }
-
 .balance-label {
     font-size: 11px;
     font-weight: 700;
@@ -304,72 +263,59 @@ select:focus {
     margin-bottom: 4px;
     letter-spacing: 1px;
 }
-
 .balance-value {
     font-size: 20px;
     font-weight: 800;
     color: var(--accent-gold);
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
-
-/* Área de Canvas */
 .canvas-container {
     flex: 1;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
-    /* Fondo radial con destello violeta */
     background: radial-gradient(circle at center, #2e0854 0%, var(--bg-dark) 80%);
 }
-
 canvas {
     max-width: 100%;
     max-height: 100%;
 }
-
-/* ADAPTACIÓN RESPONSIVA PARA DISPOSITIVOS MÓVILES */
 @media (max-width: 850px) {
     body {
         height: 100dvh;
         overflow: hidden;
     }
-
     .game-container {
         flex-direction: column;
         height: 100dvh;
     }
-
     .back-to-menu {
         top: 10px;
         left: 10px;
         width: 45px;
         height: 45px;
     }
-
     .canvas-container {
         order: 1;
         flex: 1;
         width: 100%;
         min-height: 45dvh;
     }
-
     .sidebar {
         order: 2;
         width: 100%;
         max-height: 55dvh;
         overflow-y: auto;
         padding: 14px;
-        padding-top: 14px; /* Reseteamos el padding en móvil */
+        padding-top: 14px;
         border-right: none;
         border-top: 2px solid var(--border-color);
         gap: 12px;
     }
-
     .balance-display {
         margin-top: 10px;
     }
-
     .play-btn {
         padding: 14px;
         font-size: 15px;
